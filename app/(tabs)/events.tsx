@@ -1,8 +1,16 @@
+"use client";
+
 import { View, Text, ScrollView, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { theme } from '@/constants/theme';
-import { getEventsAPI } from '@/src/api/events.api';
+
+interface EventListItem {
+  id: string;
+  name: string;
+  eventDate?: string | null;
+  guestCount?: number | null;
+}
 
 /**
  * EVENTS TAB SCREEN
@@ -16,7 +24,7 @@ import { getEventsAPI } from '@/src/api/events.api';
  */
 export default function EventsScreen() {
   const router = useRouter();
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState<EventListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

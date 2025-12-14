@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -10,12 +12,12 @@ import {
   Platform,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEventStore } from '../../../src/store/event.store';
-import { spacing, colors, typography } from '../../../src/theme';
-import { Button } from '../../../components/ui/Button';
-import { Input } from '../../../components/ui/Input';
+import { useEventStore } from '@/src/store/event.store';
+import { spacing, colors, typography } from '@/src/theme';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { AlertCircle, Check, ChevronDown } from 'lucide-react-native';
-import type { DistributionMode, EventStatus } from '../../../src/models/Event';
+import type { DistributionMode, EventStatus } from '@/src/models/Event';
 
 /**
  * EVENT SETTINGS SCREEN

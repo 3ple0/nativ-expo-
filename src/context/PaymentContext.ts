@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Payment Context
  *
@@ -10,9 +12,7 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useEscrowStore } from '../store/escrow.store';
-import { Escrow, Payment } from '../models/Escrow';
-
-type EscrowPhase = 'initiated' | 'funded' | 'held' | 'in_completion' | 'released' | 'refunded' | 'disputed';
+import { Escrow, EscrowPhase, Payment } from '../models/Escrow';
 
 interface PaymentContextType {
   // Escrow records
@@ -70,11 +70,7 @@ export const PaymentProvider = ({ children }: { children: ReactNode }) => {
     setCurrentPayment: escrowStore.setCurrentPayment,
   };
 
-  return (
-    <PaymentContext.Provider value={value}>
-      {children}
-    </PaymentContext.Provider>
-  );
+  return React.createElement(PaymentContext.Provider, { value }, children);
 };
 
 export const usePayment = () => {

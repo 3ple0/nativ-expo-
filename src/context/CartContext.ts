@@ -65,11 +65,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     getPlatformFee: cartStore.getPlatformFee,
   };
 
-  return (
-    <CartContext.Provider value={value}>
-      {children}
-    </CartContext.Provider>
-  );
+  return React.createElement(CartContext.Provider, { value }, children);
 };
 
 export const useCart = () => {

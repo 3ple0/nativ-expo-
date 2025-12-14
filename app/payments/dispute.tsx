@@ -1,9 +1,11 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, ActivityIndicator } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Text } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { colors } from '../../theme/colors';
-import { DisputeResolution } from '../../src/components/payments';
-import { Order } from '../../src/models/Order';
+import { colors } from '@/src/theme/colors';
+import { DisputeResolution } from '@/src/components/payments';
+import { Order } from '@/src/models/Order';
 
 /**
  * Dispute Screen

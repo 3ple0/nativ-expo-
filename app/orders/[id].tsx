@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -9,14 +11,14 @@ import {
   Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { colors } from '../../theme/colors';
-import { spacing } from '../../theme/spacing';
-import { typography } from '../../theme/typography';
+import { colors } from '@/src/theme/colors';
+import { spacing } from '@/src/theme/spacing';
+import { typography } from '@/src/theme/typography';
 import {
   FulfillmentTracker,
   EscrowStatusBadge,
   DeliveryConfirmation,
-} from '../../src/components/payments';
+} from '@/src/components/payments';
 import { useOrderStore } from '@/src/store/order.store';
 
 /**

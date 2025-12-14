@@ -1,3 +1,5 @@
+"use client";
+
 import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { theme } from '@/constants/theme';

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { colors } from '../../theme/colors';
@@ -42,6 +44,8 @@ interface PaymentMethodSelectorProps {
   onSelect?: (method: PaymentMethod) => Promise<void>;
   walletBalance?: number;
   hideUnavailable?: boolean;
+  value?: PaymentMethod | null;
+  onChange?: (method: PaymentMethod) => void;
 }
 
 const PAYMENT_METHODS: PaymentMethodOption[] = [
@@ -80,9 +84,16 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   onSelect,
   walletBalance = 0,
   hideUnavailable = false,
+  value = null,
+  onChange,
 }) => {
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(value);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Sync internal state with controlled value when provided
+  React.useEffect(() => {
+    setSelectedMethod(value);
+  }, [value]);
 
   const availableMethods = hideUnavailable
     ? PAYMENT_METHODS.filter((m) => m.isAvailable)
@@ -90,6 +101,9 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
 
   const handleSelectMethod = async (method: PaymentMethod) => {
     setSelectedMethod(method);
+    if (onChange) {
+      onChange(method);
+    }
     setIsLoading(true);
 
     try {

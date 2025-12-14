@@ -1,8 +1,16 @@
+"use client";
+
 import { View, Text, ScrollView, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { theme } from '@/constants/theme';
-import { getMakersAPI } from '@/src/api/makers.api';
+
+interface MakerListItem {
+  id: string;
+  name: string;
+  specialization?: string | null;
+  rating?: number | null;
+}
 
 /**
  * MAKERS TAB SCREEN
@@ -16,7 +24,7 @@ import { getMakersAPI } from '@/src/api/makers.api';
  */
 export default function MakersScreen() {
   const router = useRouter();
-  const [makers, setMakers] = useState([]);
+  const [makers, setMakers] = useState<MakerListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

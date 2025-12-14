@@ -86,9 +86,3 @@ export const paymentsApi = {
     return data;
   },
 };
-
-  addToWallet: async (amount: number): Promise<Payment> => {
-    const { data } = await apiClient.post('/wallet/add-funds', { amount });
-    return data;
-  },
-};

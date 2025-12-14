@@ -1,3 +1,5 @@
+"use client";
+
 import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { theme } from '@/constants/theme';
 import { useCartStore } from '@/src/store/cart.store';

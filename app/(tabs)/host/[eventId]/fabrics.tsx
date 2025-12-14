@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -12,7 +14,6 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEventFabricStore } from '@/src/store/eventFabric.store';
-import { useFabricStore } from '@/src/store/fabric.store';
 import { spacing, colors, typography } from '@/src/theme';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -29,9 +30,6 @@ export default function AttachFabricScreen() {
   const { eventId } = useLocalSearchParams<{ eventId: string }>();
   const { fabrics: eventFabrics, attachFabric, detachFabric, isLoading: isFabricLoading } =
     useEventFabricStore();
-  
-  // Assuming a fabric store exists for browsing available fabrics
-  const fabricStore = useFabricStore?.() || { fabrics: [] };
   
   const [selectedFabricId, setSelectedFabricId] = useState<string>('');
   const [pricePerMeter, setPricePerMeter] = useState<string>('');
@@ -75,7 +73,7 @@ export default function AttachFabricScreen() {
 
     try {
       await attachFabric({
-        event_id: eventId,
+        event_id: eventId as string,
         fabric_id: selectedFabricId,
         price_per_meter: price,
         is_primary: eventFabrics.length === 0, // First fabric is primary

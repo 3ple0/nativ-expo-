@@ -1,3 +1,5 @@
+"use client";
+
 import {
   View,
   Text,
@@ -12,7 +14,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { theme } from '@/constants/theme';
-import { supabase } from '@/src/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { ChevronLeft } from 'lucide-react-native';
 
 /**

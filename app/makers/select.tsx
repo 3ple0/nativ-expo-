@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -11,7 +13,6 @@ import {
   TextInput,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useMakerStore } from '@/src/store/maker.store';
 import { spacing, colors, typography } from '@/src/theme';
 import { Button } from '@/components/ui/Button';
 import { AlertCircle, Star, MapPin, DollarSign, CheckCircle } from 'lucide-react-native';
@@ -39,20 +40,30 @@ interface MakerFilter {
   maxPrice: number;
 }
 
+interface Maker {
+  id: string;
+  display_name: string;
+  location?: string;
+  rating?: number;
+  review_count?: number;
+  avg_price_per_meter?: number;
+}
+
 export default function SelectMakerScreen() {
   const { eventId, fabricId } = useLocalSearchParams<{
     eventId: string;
     fabricId: string;
   }>();
 
-  const { makers, fetchMakers, isLoading, error } = useMakerStore?.() || {
-    makers: [],
-    fetchMakers: async () => {},
+  const makerStore = {
+    makers: [] as Maker[],
+    fetchMakers: async () => Promise.resolve(),
     isLoading: false,
-    error: null,
+    error: null as string | null,
   };
+  const { makers, fetchMakers, isLoading, error } = makerStore;
 
-  const [filteredMakers, setFilteredMakers] = useState(makers);
+  const [filteredMakers, setFilteredMakers] = useState<Maker[]>(makers);
   const [selectedMakerId, setSelectedMakerId] = useState<string | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const [filters, setFilters] = useState<MakerFilter>({
@@ -81,22 +92,21 @@ export default function SelectMakerScreen() {
     // Search by name or location
     if (filters.searchText) {
       const search = filters.searchText.toLowerCase();
-      filtered = filtered.filter(
-        (m: any) =>
-          m.display_name?.toLowerCase().includes(search) ||
-          m.location?.toLowerCase().includes(search)
+      filtered = filtered.filter((m) =>
+        m.display_name?.toLowerCase().includes(search) ||
+        m.location?.toLowerCase().includes(search)
       );
     }
 
     // Filter by rating
     if (filters.minRating > 0) {
-      filtered = filtered.filter((m: any) => (m.rating || 0) >= filters.minRating);
+      filtered = filtered.filter((m) => (m.rating || 0) >= filters.minRating);
     }
 
     // Filter by max price (avg_price_per_meter)
     if (filters.maxPrice > 0) {
       filtered = filtered.filter(
-        (m: any) => (m.avg_price_per_meter || 0) <= filters.maxPrice
+        (m) => (m.avg_price_per_meter || 0) <= filters.maxPrice
       );
     }
 

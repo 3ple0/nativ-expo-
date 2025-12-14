@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { colors } from '../../theme/colors';

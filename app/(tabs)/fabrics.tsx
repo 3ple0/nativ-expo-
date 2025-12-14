@@ -1,8 +1,17 @@
+"use client";
+
 import { View, Text, ScrollView, FlatList, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { theme } from '@/constants/theme';
-import { getFabricsAPI } from '@/src/api/fabrics.api';
+
+interface FabricListItem {
+  id: string;
+  name: string;
+  color?: string | null;
+  imageUrl?: string | null;
+  pricePerMeter?: number | null;
+}
 
 /**
  * FABRICS TAB SCREEN
@@ -16,7 +25,7 @@ import { getFabricsAPI } from '@/src/api/fabrics.api';
  */
 export default function FabricsScreen() {
   const router = useRouter();
-  const [fabrics, setFabrics] = useState([]);
+  const [fabrics, setFabrics] = useState<FabricListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

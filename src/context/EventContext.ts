@@ -133,11 +133,7 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
     },
   };
 
-  return (
-    <EventContext.Provider value={value}>
-      {children}
-    </EventContext.Provider>
-  );
+  return React.createElement(EventContext.Provider, { value }, children);
 };
 
 export const useEventContext = () => {
