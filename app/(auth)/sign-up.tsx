@@ -1,264 +1,319 @@
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Platform } from 'react-native';
-import { useSignUp } from '@clerk/clerk-expo';
-import { useRouter, Link } from 'expo-router';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
 import { theme } from '@/constants/theme';
+import { supabase } from '@/src/lib/supabase';
+import { ChevronLeft } from 'lucide-react-native';
 
+/**
+ * SIGN UP SCREEN
+ *
+ * New account creation with Supabase.
+ * Creates user with 'guest' role by default.
+ * On success, user can sign in.
+ */
 export default function SignUpScreen() {
-  const { signUp, setActive, isLoaded } = useSignUp();
   const router = useRouter();
-
-  const [emailAddress, setEmailAddress] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [pendingVerification, setPendingVerification] = useState(false);
-  const [code, setCode] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  const onSignUpPress = async () => {
-    if (!isLoaded) return;
-
-    setLoading(true);
-    setError('');
-
-    try {
-      await signUp.create({
-        emailAddress,
-        password,
-        firstName: fullName.split(' ')[0],
-        lastName: fullName.split(' ').slice(1).join(' '),
-      });
-
-      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-      setPendingVerification(true);
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || 'Failed to sign up');
-    } finally {
-      setLoading(false);
+  /**
+   * HANDLE SIGN UP
+   *
+   * 1. Validate inputs
+   * 2. Check password match
+   * 3. Call supabase.auth.signUp
+   * 4. Show confirmation message
+   * 5. User signs in with credentials
+   */
+  async function handleSignUp() {
+    if (!email || !password || !confirmPassword) {
+      setError('All fields are required');
+      return;
     }
-  };
 
-  const onVerifyPress = async () => {
-    if (!isLoaded) return;
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const completeSignUp = await signUp.attemptEmailAddressVerification({
-        code,
-      });
-
-      await setActive({ session: completeSignUp.createdSessionId });
-      router.replace('/(tabs)');
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || 'Failed to verify email');
-    } finally {
-      setLoading(false);
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
     }
-  };
 
-  const onGoogleSignUp = async () => {
-    if (!isLoaded) return;
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
 
     try {
       setLoading(true);
-      setError('');
+      setError(null);
 
-      await signUp.authenticateWithRedirect({
-        strategy: 'oauth_google',
-        redirectUrl: '/oauth-callback',
-        redirectUrlComplete: '/(tabs)',
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
       });
+
+      if (signUpError) {
+        setError(signUpError.message);
+        Alert.alert('Sign Up Failed', signUpError.message);
+        return;
+      }
+
+      Alert.alert(
+        'Account Created',
+        'Please check your email to verify your account, then sign in.'
+      );
+      router.replace('/sign-in');
     } catch (err: any) {
-      setError(err.errors?.[0]?.message || 'Failed to sign up with Google');
+      const message = err.message || 'An unexpected error occurred';
+      setError(message);
+      Alert.alert('Error', message);
+    } finally {
       setLoading(false);
     }
-  };
-
-  if (pendingVerification) {
-    return (
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Verify your email</Text>
-          <Text style={styles.subtitle}>
-            We sent a verification code to {emailAddress}
-          </Text>
-        </View>
-
-        {error ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        ) : null}
-
-        <View style={styles.form}>
-          <Input
-            label="Verification Code"
-            placeholder="Enter 6-digit code"
-            value={code}
-            onChangeText={setCode}
-            keyboardType="number-pad"
-            maxLength={6}
-          />
-
-          <Button
-            title="Verify Email"
-            onPress={onVerifyPress}
-            loading={loading}
-            disabled={code.length !== 6}
-            fullWidth
-          />
-        </View>
-      </ScrollView>
-    );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Create your account</Text>
-        <Text style={styles.subtitle}>Start automating your social media today</Text>
-      </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+    >
+      <ScrollView
+        style={{ flex: 1, backgroundColor: theme.colors.white }}
+        contentContainerStyle={{ flexGrow: 1, padding: 20 }}
+      >
+        {/* Header */}
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{
+            marginBottom: 24,
+            padding: 8,
+            marginLeft: -8,
+          }}
+        >
+          <ChevronLeft color={theme.colors.neutral[900]} size={24} />
+        </TouchableOpacity>
 
-      {error ? (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+        <Text
+          style={{
+            fontSize: 28,
+            fontWeight: '700',
+            color: theme.colors.neutral[900],
+            marginBottom: 8,
+          }}
+        >
+          Create Account
+        </Text>
+        <Text
+          style={{
+            fontSize: 14,
+            color: theme.colors.neutral[600],
+            marginBottom: 32,
+            lineHeight: 20,
+          }}
+        >
+          Join Nativ+ to buy, coordinate, and deliver with trust.
+        </Text>
+
+        {/* Error Message */}
+        {error && (
+          <View
+            style={{
+              backgroundColor: theme.colors.status.error_light,
+              borderRadius: 8,
+              padding: 12,
+              marginBottom: 20,
+            }}
+          >
+            <Text
+              style={{
+                color: theme.colors.status.error,
+                fontSize: 13,
+              }}
+            >
+              {error}
+            </Text>
+          </View>
+        )}
+
+        {/* Email Input */}
+        <View style={{ marginBottom: 16 }}>
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: '600',
+              color: theme.colors.neutral[900],
+              marginBottom: 8,
+            }}
+          >
+            Email
+          </Text>
+          <TextInput
+            style={{
+              backgroundColor: theme.colors.neutral[50],
+              borderWidth: 1,
+              borderColor: theme.colors.neutral[200],
+              borderRadius: 8,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              fontSize: 14,
+              color: theme.colors.neutral[900],
+            }}
+            placeholder="your@email.com"
+            placeholderTextColor={theme.colors.neutral[400]}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!loading}
+          />
         </View>
-      ) : null}
 
-      <View style={styles.form}>
-        <Input
-          label="Full Name"
-          placeholder="Enter your full name"
-          value={fullName}
-          onChangeText={setFullName}
-          autoCapitalize="words"
-          autoComplete="name"
-        />
-
-        <Input
-          label="Email"
-          placeholder="Enter your email"
-          value={emailAddress}
-          onChangeText={setEmailAddress}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-        />
-
-        <Input
-          label="Password"
-          placeholder="Create a password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoComplete="password-new"
-          helperText="Must be at least 8 characters"
-        />
-
-        <Button
-          title="Sign Up"
-          onPress={onSignUpPress}
-          loading={loading}
-          disabled={!emailAddress || !password || !fullName}
-          fullWidth
-        />
-
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or</Text>
-          <View style={styles.dividerLine} />
+        {/* Password Input */}
+        <View style={{ marginBottom: 16 }}>
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: '600',
+              color: theme.colors.neutral[900],
+              marginBottom: 8,
+            }}
+          >
+            Password
+          </Text>
+          <TextInput
+            style={{
+              backgroundColor: theme.colors.neutral[50],
+              borderWidth: 1,
+              borderColor: theme.colors.neutral[200],
+              borderRadius: 8,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              fontSize: 14,
+              color: theme.colors.neutral[900],
+            }}
+            placeholder="••••••••"
+            placeholderTextColor={theme.colors.neutral[400]}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            editable={!loading}
+          />
+          <Text
+            style={{
+              fontSize: 12,
+              color: theme.colors.neutral[500],
+              marginTop: 6,
+            }}
+          >
+            At least 6 characters
+          </Text>
         </View>
 
-        <Button
-          title="Continue with Google"
-          onPress={onGoogleSignUp}
-          variant="outline"
+        {/* Confirm Password Input */}
+        <View style={{ marginBottom: 24 }}>
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: '600',
+              color: theme.colors.neutral[900],
+              marginBottom: 8,
+            }}
+          >
+            Confirm Password
+          </Text>
+          <TextInput
+            style={{
+              backgroundColor: theme.colors.neutral[50],
+              borderWidth: 1,
+              borderColor: theme.colors.neutral[200],
+              borderRadius: 8,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              fontSize: 14,
+              color: theme.colors.neutral[900],
+            }}
+            placeholder="••••••••"
+            placeholderTextColor={theme.colors.neutral[400]}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+            editable={!loading}
+          />
+        </View>
+
+        {/* Sign Up Button */}
+        <TouchableOpacity
+          onPress={handleSignUp}
           disabled={loading}
-          fullWidth
-        />
+          style={{
+            backgroundColor: theme.colors.primary[600],
+            borderRadius: 8,
+            paddingVertical: 14,
+            alignItems: 'center',
+            marginBottom: 16,
+            opacity: loading ? 0.6 : 1,
+          }}
+        >
+          {loading ? (
+            <ActivityIndicator color={theme.colors.white} />
+          ) : (
+            <Text
+              style={{
+                color: theme.colors.white,
+                fontSize: 16,
+                fontWeight: '700',
+              }}
+            >
+              Create Account
+            </Text>
+          )}
+        </TouchableOpacity>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
-          <Link href="/(auth)/sign-in" asChild>
-            <TouchableOpacity>
-              <Text style={styles.link}>Sign in</Text>
-            </TouchableOpacity>
-          </Link>
+        {/* Spacer */}
+        <View style={{ flex: 1 }} />
+
+        {/* Footer */}
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 14,
+              color: theme.colors.neutral[600],
+            }}
+          >
+            Already have an account?
+          </Text>
+          <TouchableOpacity onPress={() => router.push('/sign-in')}>
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '700',
+                color: theme.colors.primary[600],
+              }}
+            >
+              Sign In
+            </Text>
+          </TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  contentContainer: {
-    padding: theme.spacing.xl,
-    paddingTop: Platform.OS === 'ios' ? 60 : theme.spacing.xxl,
-  },
-  header: {
-    marginBottom: theme.spacing.xl,
-  },
-  title: {
-    fontSize: theme.fontSize.xxxl,
-    fontWeight: theme.fontWeight.bold,
-    color: theme.colors.neutral[900],
-    marginBottom: theme.spacing.sm,
-  },
-  subtitle: {
-    fontSize: theme.fontSize.base,
-    color: theme.colors.neutral[600],
-  },
-  errorContainer: {
-    backgroundColor: theme.colors.error[50],
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
-    marginBottom: theme.spacing.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.error[200],
-  },
-  errorText: {
-    color: theme.colors.error[600],
-    fontSize: theme.fontSize.sm,
-  },
-  form: {
-    gap: theme.spacing.md,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: theme.spacing.md,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: theme.colors.neutral[300],
-  },
-  dividerText: {
-    paddingHorizontal: theme.spacing.md,
-    color: theme.colors.neutral[500],
-    fontSize: theme.fontSize.sm,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: theme.spacing.lg,
-  },
-  footerText: {
-    color: theme.colors.neutral[600],
-    fontSize: theme.fontSize.sm,
-  },
-  link: {
-    color: theme.colors.primary[600],
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.semibold,
-  },
-});
